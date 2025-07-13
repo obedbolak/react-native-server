@@ -62,6 +62,7 @@ const createPostController = async (req, res) => {
 
 // GET ALL POSTS
 const getAllPostsContoller = async (req, res) => {
+  //latest  updtate
   try {
     const posts = await postModel
       .find()
