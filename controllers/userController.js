@@ -16,18 +16,13 @@ const registerController = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     //validation
-    if (!name) {
+    if (!name || !email || !password) {
       return res.status(400).send({
         success: false,
-        message: "name is required",
+        message: "all fields are required",
       });
     }
-    if (!email) {
-      return res.status(400).send({
-        success: false,
-        message: "email is required",
-      });
-    }
+   
     if (!password || password.length < 6) {
       return res.status(400).send({
         success: false,
@@ -70,7 +65,7 @@ const registerController = async (req, res) => {
 const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(email, password);
+    
     if (!email || !password) {
       return res.status(500).send({
         success: false,
@@ -293,3 +288,6 @@ module.exports = {
   passwordResetController,
   profilePictureupdateController,
 };
+
+
+

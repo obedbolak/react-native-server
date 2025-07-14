@@ -19,9 +19,10 @@ connectDB();
 //Initialising Cloudinary
 
 cloudinary.config({ 
-        cloud_name: 'djs5lnhgs', 
-        api_key: '652454714642276', 
-        api_secret: 'i9Zp2dWL_R0AKVdkiDok9BA3vIE' // Click 'View API Keys' above to copy your API secret
+        cloud_name:`${process.env.CLOUDINARY_CLOUD_NAME}`, 
+        api_key:`${process.env.CLOUDINARY_API_KEY}`,  
+        api_secret:`${process.env.CLOUDINARY_API_SECRET}` 
+        // Click 'View API Keys' above to copy your API secret
     });
 
 

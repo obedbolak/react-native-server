@@ -13,6 +13,7 @@ const { singleUpload } = require("../middleWare/multer");
 const router = express.Router();
 
 //routes
+
 // REGISTER || POST
 router.post("/register", registerController);
 
@@ -26,7 +27,7 @@ router.put("/update-user", requireSingIn, updateUserController);
 router.put("/password-update", passwordResetController);
 
 //profilePictureupdate
-router.put("/profile-picture-update/:id", singleUpload, profilePictureupdateController);
+router.put("/profile-picture-update/:id",requireSingIn, singleUpload, profilePictureupdateController);
 
 //export
 module.exports = router;
