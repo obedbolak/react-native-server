@@ -15,16 +15,10 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "User",
       },
-    images: [
+   images: [
       {
-        public_id: {
-          type: String,
-          required: true,
-        },
-        url: {
-          type: String,
-          required: true,
-        },
+        public_id: String,
+        url: String,
       },
     ],
   },

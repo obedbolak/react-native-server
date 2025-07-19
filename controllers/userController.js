@@ -4,6 +4,7 @@ const userModel = require("../models/userModel.js");
 const { expressjwt: jwt } = require("express-jwt");
 const cloudinary = require("cloudinary").v2;
 const { getDataUri } = require("../utils/dataUri.js");
+const { token } = require("morgan");
 
 //middleware
 const requireSingIn = jwt({
@@ -40,16 +41,26 @@ const registerController = async (req, res) => {
     //hashed pasword
     const hashedPassword = await hashPassword(password);
 
+//TOKEN JWT
+    
+
     //save user
     const user = await userModel({
       name,
       email,
       password: hashedPassword,
     }).save();
+    
+    const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
 
     return res.status(201).send({
       success: true,
       message: "Registeration Successfull please login",
+      user,
+      token,
     });
   } catch (error) {
     console.log(error);
@@ -61,11 +72,123 @@ const registerController = async (req, res) => {
   }
 };
 
+// i want a patch controller to edit user profile
+const patchUserdetailsController = async (req, res) => {
+  try {
+    // Validate required fields
+    if (!req.auth?._id) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized: Missing user authentication",
+      });
+    }
+
+    const { name, email, profilePic } = req.body;
+
+    // Input validation
+    if (!name && !email && !profilePic) {
+      return res.status(400).send({
+        success: false,
+        message: "Bad Request: At least one field (name, email, or profilePic) must be provided",
+      });
+    }
+
+    if (email) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid email format",
+        });
+      }
+
+      // Check if email already exists (excluding current user)
+      const existingUser = await userModel.findOne({ email, _id: { $ne: req.auth._id } });
+      if (existingUser) {
+        return res.status(409).send({
+          success: false,
+          message: "Email already in use by another account",
+        });
+      }
+    }
+
+    // Find and update user
+    const user = await userModel.findById(req.auth._id);
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Only update fields that were provided
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (profilePic) {
+      // Validate profilePic structure
+      if (!profilePic.public_id || !profilePic.url) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid profilePic format. Must contain public_id and url",
+        });
+      }
+      user.profilePic = {
+        public_id: profilePic.public_id,
+        url: profilePic.url,
+      };
+    }
+
+    // Save changes
+    const updatedUser = await user.save();
+
+    // Return updated user data (consider what to expose)
+    const userResponse = {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      profilePic: updatedUser.profilePic,
+      // Add other safe fields as needed
+    };
+
+    return res.status(200).send({
+      success: true,
+      message: "User updated successfully",
+      user: userResponse,
+    });
+
+  } catch (error) {
+    console.error("Error in patchUserdetailsController:", error);
+    
+    // Handle specific errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).send({
+        success: false,
+        message: "Validation Error",
+        error: error.message,
+      });
+    }
+
+    if (error.name === 'CastError') {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid ID format",
+      });
+    }
+
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 //login
 const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+    console.log(email, password);
     if (!email || !password) {
       return res.status(500).send({
         success: false,
@@ -287,6 +410,7 @@ module.exports = {
   updateUserController,
   passwordResetController,
   profilePictureupdateController,
+  patchUserdetailsController,
 };
 
 

@@ -5,6 +5,7 @@ const {
   updateUserController,
   passwordResetController,
 profilePictureupdateController,
+  patchUserdetailsController,
   requireSingIn,
 } = require("../controllers/userController");
 const { singleUpload } = require("../middleWare/multer");
@@ -22,6 +23,9 @@ router.post("/login", loginController);
 
 //UPDATE || PUT
 router.put("/update-user", requireSingIn, updateUserController);
+
+//GET USER
+router.patch("/patch-user", requireSingIn, patchUserdetailsController);
 
 // password update
 router.put("/password-update", passwordResetController);

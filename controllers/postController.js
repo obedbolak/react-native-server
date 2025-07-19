@@ -178,6 +178,37 @@ const deletePostImage = async (req, res) => {
   }   
   
 }
+
+const addPostImages = async (req, res) => {
+  try {
+    const post = await postModel.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: "No images provided" });
+    }
+
+    const imagesArray = [];
+    for (let file of req.files) {
+      const fileUri = getDataUri(file);
+      const cdb = await cloudinary.v2.uploader.upload(fileUri.content);
+      imagesArray.push({
+        public_id: cdb.public_id,
+        url: cdb.secure_url,
+      });
+    }
+
+    post.images.push(...imagesArray);
+    await post.save();
+
+    return res.status(200).json({ success: true, message: "Images added successfully", post });
+  } catch (error) {
+    console.error("Error in addPostImages:", error);
+    return res.status(500).json({ success: false, message: "Failed to add images", error });
+  }
+};
 //UPDATE POST
 const updatePostController = async (req, res) => {
   try {
@@ -222,4 +253,5 @@ module.exports = {
   deletePostController,
   updatePostController,
   deletePostImage,
+  addPostImages,
 };

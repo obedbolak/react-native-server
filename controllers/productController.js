@@ -126,7 +126,7 @@ const getSingleProductController = async (req, res) => {
       price,
     //   category,
       stock,
-      sellerId,
+     
       images: imagesArray, // Save the array of image links
     });
 
